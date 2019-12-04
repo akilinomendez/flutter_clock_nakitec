@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   flare_flutter: ^1.7.3
   intl: ^0.16.0
+  provider: ^3.2.0
 
 dev_dependencies:
   flutter_test:
