@@ -88,6 +88,6 @@ class MoonPhase {
   // solar distance
   // https://aa.usno.navy.mil/faq/docs/SunApprox.php
   //double sunDistance = tokm(1.00014 - 0.01671 * cosm - 0.00014 * cos2m);
-   return phase;
+   return double.parse(phase.toStringAsFixed(1));
   }
 }

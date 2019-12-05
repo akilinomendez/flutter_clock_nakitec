@@ -60,70 +60,47 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
         nodeluna.children.firstWhere((node) => node.name == 'Luna luz');
     ActorNode luna =
         nodeluna.children.firstWhere((node) => node.name == 'Luna');
-    FlutterActorShape estadolunaleft =
-        luna.children.firstWhere((node) => node.name == 'estadoluna-left');
-    FlutterActorShape estadolunaright =
-        luna.children.firstWhere((node) => node.name == 'estadoluna-right');
+    FlutterActorShape estadoluna =
+        luna.children.firstWhere((node) => node.name == 'estadoluna');
 
     setState(() {
       clockModel.location = 'sa';
     });
-    double phase = 0.6;
-    double roundPhase = double.parse(phase.toStringAsFixed(1));
-
-    if (roundPhase == 0.5) {
-      estadolunaleft.scaleX = 0;
-      estadolunaright.scaleX = 0;
-    }
-
-    if (roundPhase > 0.5) {
-      estadolunaleft.scaleX = 0;
-      estadolunaright.scaleX = roundPhase;
-    }
-
-    if (roundPhase < 0.5) {
-      estadolunaleft.scaleX = 1 - roundPhase;
-      estadolunaright.scaleX = 1;
-    }
-
+    double roundPhase = moonPhase.phase();
+   
+    
     if (state == 'init') {
       setState(() {
-        //  stateMoonx = estadoluna.x;
+        stateMoonx = estadoluna.x;
         nodeMoonLigthx = nodelunaLuz.x;
       });
     } else {
-      // estadoluna.x = stateMoonx;
+      estadoluna.x = stateMoonx;
       nodelunaLuz.x = nodeMoonLigthx;
     }
+    // set MOON [ NEW, WAXING CRESCENT, FULLMOON , WANING CRESCENT ]
+    if (roundPhase >= 0.9) {
+      estadoluna.x = estadoluna.x;
+      nodelunaLuz.x = -10000;
+    }
+    if (roundPhase == 0.5) {
+      estadoluna.x = estadoluna.x - 300;
+    }
 
-    // print(moonPhase.phase());
+    if (roundPhase <= 0.9 && roundPhase >= 0.6) {
+      estadoluna.x = estadoluna.x - 80;
+    }
 
-    // REMPLACE FOR REST API GET STATE
-    /*final _randomMock = new Random();
-    print(clockModel.location);
-    String mockluna = moonState[_randomMock.nextInt(moonState.length)];
-    print(mockluna);*/
-    /*
-    switch (mockluna) {
-      case 'New Moon':
-        estadoluna.
-        estadoluna.x = estadoluna.x;
-        nodelunaLuz.x = -10000;
-        break;
-      case 'Full Moon':
-        
-        estadoluna.x = estadoluna.x - 300;
-        break;
-      case 'First Quarter':
-        
-        estadoluna.x = estadoluna.x - 80;
-        break;
-      case 'Third Quarter':
-        
-        estadoluna.x = estadoluna.x + 80;
-        break;
-      default:
-    }*/
+    if (roundPhase > 0.1 && roundPhase <= 0.4) {
+      estadoluna.x = estadoluna.x + 80;
+    }
+
+    if (roundPhase <= 0.1) {
+      estadoluna.x = estadoluna.x;
+      nodelunaLuz.x = -10000;
+    }
+
+   
   }
 
   @override
