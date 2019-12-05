@@ -1,4 +1,3 @@
-
 import "package:flutter/material.dart";
 
 import 'dart:async';
@@ -13,10 +12,8 @@ import 'package:provider/provider.dart';
 import 'package:testapp/flutter_clock_helper/model.dart';
 import 'package:testapp/flutter_clock_helper/moon_phase.dart';
 
-
 class DefaultPage extends StatefulWidget {
   DefaultPage({Key key}) : super(key: key);
-  
 
   @override
   _DefaultPageState createState() => _DefaultPageState();
@@ -37,7 +34,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   MoonPhase moonPhase = MoonPhase();
   double stateMoonx = 0;
   double nodeMoonLigthx = 0;
-  
+
   ActorNode _nodeglobal;
 
   ClockModel clockModel;
@@ -48,17 +45,12 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     'Third Quarter'
   ];
 
-
-  
-
   @override
   void initState() {
     _timeString = _formatDateTime(DateTime.now());
-    Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());  
+    Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
     super.initState();
   }
-
-  
 
   void getMoonState(FlutterActorArtboard artboard, state) {
     _nodeglobal = artboard.getNode("Global");
@@ -67,33 +59,50 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     ActorNode nodelunaLuz =
         nodeluna.children.firstWhere((node) => node.name == 'Luna luz');
     ActorNode luna =
-        nodeluna.children.firstWhere((node) => node.name == 'Luna');    
-    FlutterActorShape estadoluna =
-        luna.children.firstWhere((node) => node.name == 'estadoluna');
+        nodeluna.children.firstWhere((node) => node.name == 'Luna');
+    FlutterActorShape estadolunaleft =
+        luna.children.firstWhere((node) => node.name == 'estadoluna-left');
+    FlutterActorShape estadolunaright =
+        luna.children.firstWhere((node) => node.name == 'estadoluna-right');
 
     setState(() {
-                    clockModel.location = 'sa';
-                  });
+      clockModel.location = 'sa';
+    });
+    double phase = 0.6;
+    double roundPhase = double.parse(phase.toStringAsFixed(1));
 
-    if(state == 'init') {
-      setState(() {
-        stateMoonx = estadoluna.x;
-        nodeMoonLigthx  = nodelunaLuz.x;
-      });
-      
-    }  else {
-      estadoluna.x =stateMoonx;
-      nodelunaLuz.x =  nodeMoonLigthx;
+    if (roundPhase == 0.5) {
+      estadolunaleft.scaleX = 0;
+      estadolunaright.scaleX = 0;
     }
-    print(moonPhase.phase());
-    
-    print(estadoluna.rotation);
-    estadoluna.rotation = moonPhase.phase();
-    // REMPLACE FOR REST API GET STATE    
-    final _randomMock = new Random();
+
+    if (roundPhase > 0.5) {
+      estadolunaleft.scaleX = 0;
+      estadolunaright.scaleX = roundPhase;
+    }
+
+    if (roundPhase < 0.5) {
+      estadolunaleft.scaleX = 1 - roundPhase;
+      estadolunaright.scaleX = 1;
+    }
+
+    if (state == 'init') {
+      setState(() {
+        //  stateMoonx = estadoluna.x;
+        nodeMoonLigthx = nodelunaLuz.x;
+      });
+    } else {
+      // estadoluna.x = stateMoonx;
+      nodelunaLuz.x = nodeMoonLigthx;
+    }
+
+    // print(moonPhase.phase());
+
+    // REMPLACE FOR REST API GET STATE
+    /*final _randomMock = new Random();
     print(clockModel.location);
     String mockluna = moonState[_randomMock.nextInt(moonState.length)];
-    print(mockluna);
+    print(mockluna);*/
     /*
     switch (mockluna) {
       case 'New Moon':
@@ -119,7 +128,6 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
 
   @override
   void initialize(FlutterActorArtboard artboard) {
-    
     getMoonState(artboard, 'init');
     DateTime date = DateTime.now();
     double hour = date.hour.toDouble();
@@ -129,26 +137,25 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   }
 
   bool advance(FlutterActorArtboard artboard, double elapsed) {
-    
     _cicleTime += elapsed * _speed;
-    
+
     //
     //_reinit animation overflow
-    if(_cicleTime >= 24) {      
+    if (_cicleTime >= 24) {
       _cicleTime = 0;
       _cicleTime += elapsed * _speed;
     }
- 
-    if(_cicleTime >= 6 && _cicleTime < 7 && setMoon == false) {
-      setMoon = true;      
+
+    if (_cicleTime >= 6 && _cicleTime < 7 && setMoon == false) {
+      setMoon = true;
       getMoonState(artboard, 'change');
     }
 
-    if(_cicleTime < 6 || _cicleTime >= 7) {
-      setMoon = false;      
+    if (_cicleTime < 6 || _cicleTime >= 7) {
+      setMoon = false;
     }
     _cicle.apply(_cicleTime % _cicle.duration, artboard, _cicleAmount);
-    
+
     if (_cloudyTime < 9.9 && end == false) {
       _cloudyTime += elapsed;
       _cloudy.apply(_cloudyTime % _cloudy.duration, artboard, 0.5);
@@ -167,7 +174,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   @override
   Widget build(BuildContext context) {
     clockModel = Provider.of<ClockModel>(context);
-   
+
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -200,13 +207,11 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   }
 
   void _getTime() {
-   
     final DateTime now = DateTime.now();
     final String formattedDateTime = _formatDateTime(now);
 
     setState(() {
       _timeString = formattedDateTime;
-      
     });
   }
 
