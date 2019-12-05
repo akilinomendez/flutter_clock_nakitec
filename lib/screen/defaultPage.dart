@@ -11,6 +11,7 @@ import "package:flare_flutter/flare_actor.dart";
 import 'package:flare_flutter/flare_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:testapp/flutter_clock_helper/model.dart';
+import 'package:testapp/flutter_clock_helper/moon_phase.dart';
 
 
 class DefaultPage extends StatefulWidget {
@@ -33,7 +34,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   bool end = false;
   String _timeString;
   bool setMoon = false;
-
+  MoonPhase moonPhase = MoonPhase();
   double stateMoonx = 0;
   double nodeMoonLigthx = 0;
   
@@ -46,6 +47,8 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     'First Quarter',
     'Third Quarter'
   ];
+
+
   
 
   @override
@@ -82,15 +85,19 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
       estadoluna.x =stateMoonx;
       nodelunaLuz.x =  nodeMoonLigthx;
     }
-
+    print(moonPhase.phase());
+    
+    print(estadoluna.rotation);
+    estadoluna.rotation = moonPhase.phase();
     // REMPLACE FOR REST API GET STATE    
     final _randomMock = new Random();
     print(clockModel.location);
     String mockluna = moonState[_randomMock.nextInt(moonState.length)];
     print(mockluna);
+    /*
     switch (mockluna) {
       case 'New Moon':
-        
+        estadoluna.
         estadoluna.x = estadoluna.x;
         nodelunaLuz.x = -10000;
         break;
@@ -107,7 +114,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
         estadoluna.x = estadoluna.x + 80;
         break;
       default:
-    }
+    }*/
   }
 
   @override
