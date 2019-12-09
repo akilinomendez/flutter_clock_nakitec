@@ -1,7 +1,8 @@
+import 'dart:math';
+
 import "package:flutter/material.dart";
 
 import 'dart:async';
-import 'dart:math';
 import 'package:intl/intl.dart';
 
 import 'package:flare_dart/math/mat2d.dart';
@@ -9,8 +10,9 @@ import 'package:flare_flutter/flare.dart';
 import "package:flare_flutter/flare_actor.dart";
 import 'package:flare_flutter/flare_controller.dart';
 import 'package:provider/provider.dart';
-import 'package:testapp/flutter_clock_helper/model.dart';
-import 'package:testapp/flutter_clock_helper/moon_phase.dart';
+import 'package:testapp/helpers/clock_model.dart';
+import 'package:testapp/helpers/moon_phase.dart';
+import 'package:testapp/helpers/timerState.dart';
 
 class DefaultPage extends StatefulWidget {
   DefaultPage({Key key}) : super(key: key);
@@ -29,26 +31,17 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   ActorAnimation _cicle;
   ActorAnimation _cloudy;
   bool end = false;
-  String _timeString;
+
   bool setMoon = false;
   MoonPhase moonPhase = MoonPhase();
   double stateMoonx = 0;
   double nodeMoonLigthx = 0;
 
   ActorNode _nodeglobal;
-
   ClockModel clockModel;
-  List<String> moonState = [
-    'New Moon',
-    'Full Moon',
-    'First Quarter',
-    'Third Quarter'
-  ];
 
   @override
   void initState() {
-    _timeString = _formatDateTime(DateTime.now());
-    Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
     super.initState();
   }
 
@@ -63,12 +56,8 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     FlutterActorShape estadoluna =
         luna.children.firstWhere((node) => node.name == 'estadoluna');
 
-    setState(() {
-      clockModel.location = 'sa';
-    });
     double roundPhase = moonPhase.phase();
-   
-    
+
     if (state == 'init') {
       setState(() {
         stateMoonx = estadoluna.x;
@@ -99,8 +88,6 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
       estadoluna.x = estadoluna.x;
       nodelunaLuz.x = -10000;
     }
-
-   
   }
 
   @override
@@ -151,48 +138,69 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   @override
   Widget build(BuildContext context) {
     clockModel = Provider.of<ClockModel>(context);
+    clockModel.addListener(listenerClock());
+    final timerState = Provider.of<TimerState>(context);
 
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                    child: FlareActor("assets/ciclo_lanzarote.flr",
-                        alignment: Alignment.center,
-                        fit: BoxFit.cover,
-                        controller: this))
-              ],
-            ),
-          ),
-          Container(
-            child: Center(
-              child: Text(
-                _timeString,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: MediaQuery.of(context).size.width / 8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        body: StreamBuilder<DateTime>(
+            stream: timerState.$time,
+            builder: (context, AsyncSnapshot<DateTime> snap) {
+              if (!snap.hasData) {
+                return CircularProgressIndicator();
+              }
+              return Stack(
+                children: <Widget>[
+                  AspectRatio(
+                    aspectRatio: 5 / 3,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                              child: FlareActor("assets/ciclo_lanzarote.flr",
+                                  alignment: Alignment.center,
+                                  fit: BoxFit.cover,
+                                  controller: this))
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Center(
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            DateFormat('HH:mm').format(snap.data),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize:
+                                    MediaQuery.of(context).size.width / 8),
+                          ),
+                          Text(
+                            clockModel.temperatureString,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize:
+                                    MediaQuery.of(context).size.width / 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }));
   }
 
-  void _getTime() {
-    final DateTime now = DateTime.now();
-    final String formattedDateTime = _formatDateTime(now);
-
-    setState(() {
-      _timeString = formattedDateTime;
-    });
+  listenerClock() {
+    print('change');
+    print(clockModel.weatherCondition);
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return DateFormat('HH:mm').format(dateTime);
+  randomWeather() {
+    Random random = Random();
+    clockModel.weatherCondition =
+        WeatherCondition.values[random.nextInt(WeatherCondition.values.length)];
   }
 }

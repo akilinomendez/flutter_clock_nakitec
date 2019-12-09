@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +15,9 @@ import 'package:flutter/material.dart';
 /// your `dispose` method.
 ///
 /// Contestants: Do not edit this.
-class ClockModel extends ChangeNotifier {
+class ClockModel extends ChangeNotifier {  
+  
+
   get is24HourFormat => _is24HourFormat;
   bool _is24HourFormat = true;
   set is24HourFormat(bool is24HourFormat) {

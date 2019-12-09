@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:testapp/screen/defaultPage.dart';
 
-import 'flutter_clock_helper/model.dart';
-
+import 'helpers/clock_model.dart';
+import 'helpers/timerState.dart';
 
 void main() {
   SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
@@ -17,15 +17,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flare Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: ChangeNotifierProvider(
-      create: (_) => ClockModel(),
-      child: DefaultPage(),
-    ),
-    );
+        debugShowCheckedModeBanner: false,
+        title: 'LanzaClock',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => ClockModel(),
+            ),
+            Provider<TimerState>(create: (_) => TimerState()),
+          ],
+          child: DefaultPage(),
+        ));
   }
 }
-
-
