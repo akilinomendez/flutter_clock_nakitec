@@ -5,10 +5,10 @@ import 'package:testapp/screen/defaultPage.dart';
 
 import 'helpers/clock_model.dart';
 import 'helpers/timerState.dart';
+import 'package:flare_flutter/flare_actor.dart';
 
 void main() {
-  SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-  SystemChrome.setEnabledSystemUIOverlays([]);
+  
   runApp(MyApp());
 }
 
@@ -16,6 +16,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
+    SystemChrome.setEnabledSystemUIOverlays([]);
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'LanzaClock',
@@ -27,7 +29,20 @@ class MyApp extends StatelessWidget {
             ),
             Provider<TimerState>(create: (_) => TimerState()),
           ],
-          child: DefaultPage(),
+          child: MyHomePage(),
         ));
+  }
+}
+
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => new _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return new FlareActor("assets/ciclo_lanzarote.flr", alignment:Alignment.center, fit:BoxFit.contain, animation:"ciclo");
   }
 }

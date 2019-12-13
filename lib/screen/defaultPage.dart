@@ -48,11 +48,12 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   void getMoonState(FlutterActorArtboard artboard, state) {
     _nodeglobal = artboard.getNode("Global");
     ActorNode nodeluna =
-        _nodeglobal.children.firstWhere((node) => node.name == 'Sol y Luna');
+        _nodeglobal.children.firstWhere((node) => node.name == 'sun and moon');
     ActorNode nodelunaLuz =
-        nodeluna.children.firstWhere((node) => node.name == 'Luna luz');
+        nodeluna.children.firstWhere((node) => node.name == 'moon light');
     ActorNode luna =
-        nodeluna.children.firstWhere((node) => node.name == 'Luna');
+        nodeluna.children.firstWhere((node) => node.name == 'moon');
+    /*
     FlutterActorShape estadoluna =
         luna.children.firstWhere((node) => node.name == 'estadoluna');
 
@@ -87,7 +88,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     if (roundPhase <= 0.1) {
       estadoluna.x = estadoluna.x;
       nodelunaLuz.x = -10000;
-    }
+    }*/
   }
 
   @override
@@ -104,7 +105,7 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     _cicleTime += elapsed * _speed;
 
     //
-    //_reinit animation overflow
+    //_reinit animation overflowb
     if (_cicleTime >= 24) {
       _cicleTime = 0;
       _cicleTime += elapsed * _speed;
@@ -150,9 +151,8 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
               }
               return Stack(
                 children: <Widget>[
-                  AspectRatio(
-                    aspectRatio: 5 / 3,
-                    child: Center(
+                
+                    Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
@@ -160,12 +160,12 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
                           Expanded(
                               child: FlareActor("assets/ciclo_lanzarote.flr",
                                   alignment: Alignment.center,
-                                  fit: BoxFit.cover,
+                                  
                                   controller: this))
                         ],
                       ),
                     ),
-                  ),
+                 
                   Container(
                     child: Center(
                       child: Column(
