@@ -5,7 +5,7 @@ import 'package:testapp/screen/defaultPage.dart';
 
 import 'helpers/clock_model.dart';
 import 'helpers/timerState.dart';
-import 'package:flare_flutter/flare_actor.dart';
+
 
 void main() {
   
@@ -29,20 +29,9 @@ class MyApp extends StatelessWidget {
             ),
             Provider<TimerState>(create: (_) => TimerState()),
           ],
-          child: MyHomePage(),
+          child: DefaultPage(),
         ));
   }
 }
 
 
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => new _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return new FlareActor("assets/ciclo_lanzarote.flr", alignment:Alignment.center, fit:BoxFit.contain, animation:"ciclo");
-  }
-}

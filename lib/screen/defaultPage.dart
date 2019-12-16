@@ -24,114 +24,145 @@ class DefaultPage extends StatefulWidget {
 class _DefaultPageState extends State<DefaultPage> with FlareController {
   double _cicleAmount = 1;
   //double _speed = 0.00001157407; // 24 HOUR
-  double _speed = 2;
+  double _speed = 1;
   double _cicleTime = 0;
   double _cloudyTime = 0;
   bool _isPaused = false;
   ActorAnimation _cicle;
   ActorAnimation _cloudy;
+  ActorAnimation _rainy;
   bool end = false;
 
   bool setMoon = false;
-  MoonPhase moonPhase = MoonPhase();
+  MoonPhase getMoon = MoonPhase();
   double stateMoonx = 0;
   double nodeMoonLigthx = 0;
-
+  bool _rainybool = false;
   ActorNode _nodeglobal;
   ClockModel clockModel;
+
+  TimerState timerState;
+  String _timeString = '';
+  DateTime _timeMoon;
 
   @override
   void initState() {
     super.initState();
   }
 
-  void getMoonState(FlutterActorArtboard artboard, state) {
+  void getMoonState(FlutterActorArtboard artboard, date) {
+    // Get Nodes for change Phase
     _nodeglobal = artboard.getNode("Global");
-    ActorNode nodeluna =
+    ActorNode nodeSunandMoon =
         _nodeglobal.children.firstWhere((node) => node.name == 'sun and moon');
-    ActorNode nodelunaLuz =
-        nodeluna.children.firstWhere((node) => node.name == 'moon light');
-    ActorNode luna =
-        nodeluna.children.firstWhere((node) => node.name == 'moon');
-    /*
-    FlutterActorShape estadoluna =
-        luna.children.firstWhere((node) => node.name == 'estadoluna');
+    ActorNode nodeMoonLight =
+        nodeSunandMoon.children.firstWhere((node) => node.name == 'moonLightS');
+    ActorNode moon =
+        nodeSunandMoon.children.firstWhere((node) => node.name == 'moon');
+    FlutterActorShape newMoon =
+        moon.children.firstWhere((shape) => shape.name == 'new');
+    FlutterActorShape firstQuarter =
+        moon.children.firstWhere((shape) => shape.name == 'first-quarter');
+    FlutterActorShape waningGib =
+        moon.children.firstWhere((shape) => shape.name == 'waning-gib');
+    FlutterActorShape waxingGib =
+        moon.children.firstWhere((shape) => shape.name == 'waxing-gib');
+    FlutterActorShape thirdQuarter =
+        moon.children.firstWhere((shape) => shape.name == 'third-quarter');
+    FlutterActorShape waxingCre =
+        moon.children.firstWhere((shape) => shape.name == 'waxing-cre');
+    FlutterActorShape waningCre =
+        moon.children.firstWhere((shape) => shape.name == 'waning-cre');
 
-    double roundPhase = moonPhase.phase();
+    // Set Initial values.
+    nodeMoonLight.opacity = 0;
+    newMoon.opacity = 0;
+    firstQuarter.opacity = 0;
+    waningGib.opacity = 0;
+    waxingGib.opacity = 0;
+    thirdQuarter.opacity = 0;
+    waxingCre.opacity = 0;
+    waningCre.opacity = 0;
 
-    if (state == 'init') {
-      setState(() {
-        stateMoonx = estadoluna.x;
-        nodeMoonLigthx = nodelunaLuz.x;
-      });
-    } else {
-      estadoluna.x = stateMoonx;
-      nodelunaLuz.x = nodeMoonLigthx;
-    }
-    // set MOON [ NEW, WAXING CRESCENT, FULLMOON , WANING CRESCENT ]
-    if (roundPhase >= 0.9) {
-      estadoluna.x = estadoluna.x;
-      nodelunaLuz.x = -10000;
-    }
-    if (roundPhase == 0.5) {
-      estadoluna.x = estadoluna.x - 300;
-    }
+    // get  Moon
+    List moonList = getMoon.phase(date);
+    int moonPhase = moonList[0];
 
-    if (roundPhase <= 0.9 && roundPhase >= 0.6) {
-      estadoluna.x = estadoluna.x - 80;
-    }
+    // Set Moon Ilumination
+    double moonIlumination = moonList[1];
+    nodeMoonLight.opacity = moonIlumination;
 
-    if (roundPhase > 0.1 && roundPhase <= 0.4) {
-      estadoluna.x = estadoluna.x + 80;
-    }
+    // Set Moon Phase
+    switch (moonPhase) {
+      case 0:
+        newMoon.opacity = 1;
+        nodeMoonLight.opacity = 0;
+        break;
+      case 1:
+        waxingCre.opacity = 1;
+        break;
+      case 2:
+        firstQuarter.opacity = 1;
+        break;
+      case 3:
+        waxingGib.opacity = 1;
+        break;
+      case 4:
+        waxingGib.opacity = 1;
+        break;
+      case 5:
+        // Full Moon;
+        nodeMoonLight.opacity = 1;
+        break;
+      case 6:
+        waningGib.opacity = 1;
 
-    if (roundPhase <= 0.1) {
-      estadoluna.x = estadoluna.x;
-      nodelunaLuz.x = -10000;
-    }*/
+        break;
+      case 7:
+        waningGib.opacity = 1;
+        break;
+      case 8:
+        thirdQuarter.opacity = 1;
+        break;
+      case 9:
+        waningCre.opacity = 1;
+        break;
+      case 10:
+        newMoon.opacity = 1;
+        nodeMoonLight.opacity = 0;
+        break;
+    }
   }
 
   @override
   void initialize(FlutterActorArtboard artboard) {
-    getMoonState(artboard, 'init');
-    DateTime date = DateTime.now();
-    double hour = date.hour.toDouble();
-    _cicleTime = hour - 8;
     _cicle = artboard.getAnimation("ciclo");
     _cloudy = artboard.getAnimation("cloudy");
+    _rainy = artboard.getAnimation("raining");
+  }
+
+  listenerClock() {
+    print('change');
+    print(clockModel.weatherCondition);
   }
 
   bool advance(FlutterActorArtboard artboard, double elapsed) {
-    _cicleTime += elapsed * _speed;
-
-    //
-    //_reinit animation overflowb
-    if (_cicleTime >= 24) {
-      _cicleTime = 0;
-      _cicleTime += elapsed * _speed;
-    }
-
-    if (_cicleTime >= 6 && _cicleTime < 7 && setMoon == false) {
-      setMoon = true;
-      getMoonState(artboard, 'change');
-    }
-
-    if (_cicleTime < 6 || _cicleTime >= 7) {
-      setMoon = false;
-    }
+    _cicleTime = double.parse(_timeString);
+    getMoonState(artboard, _timeMoon);
     _cicle.apply(_cicleTime % _cicle.duration, artboard, _cicleAmount);
-
-    if (_cloudyTime < 9.9 && end == false) {
-      _cloudyTime += elapsed;
-      _cloudy.apply(_cloudyTime % _cloudy.duration, artboard, 0.5);
-    } else if (_cloudyTime > 0.1) {
-      end = true;
-
-      _cloudy.apply(_cloudyTime % _cloudy.duration, artboard, 0.5);
-      _cloudyTime -= elapsed;
-    }
-
     return true;
+  }
+
+// Convert Datetime to Animation frame value, 8:00  is sunset animation value 0;
+  void _listenTimer(BuildContext context, data) {
+    /* Testing all hours;
+    DateTime date =
+        DateTime(2019, 12, 16, 2, 0).subtract(new Duration(hours: 8));
+    */
+    // Set from provider TimerState data
+    DateTime date = data.subtract(new Duration(hours: 8));
+    _timeMoon = date;
+    _timeString = DateFormat('HH.mm').format(date);
   }
 
   @override
@@ -140,18 +171,19 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   Widget build(BuildContext context) {
     clockModel = Provider.of<ClockModel>(context);
     clockModel.addListener(listenerClock());
-    final timerState = Provider.of<TimerState>(context);
-
+    timerState = Provider.of<TimerState>(context);
     return Scaffold(
         body: StreamBuilder<DateTime>(
             stream: timerState.$time,
             builder: (context, AsyncSnapshot<DateTime> snap) {
               if (!snap.hasData) {
                 return CircularProgressIndicator();
-              }
-              return Stack(
-                children: <Widget>[
-                
+              } else {
+                // Update Animation Frame
+                _listenTimer(context, snap.data);
+                // Return Widget
+                return Stack(
+                  children: <Widget>[
                     Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -160,47 +192,38 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
                           Expanded(
                               child: FlareActor("assets/ciclo_lanzarote.flr",
                                   alignment: Alignment.center,
-                                  
                                   controller: this))
                         ],
                       ),
                     ),
-                 
-                  Container(
-                    child: Center(
-                      child: Column(
-                        children: <Widget>[
-                          Text(
-                            DateFormat('HH:mm').format(snap.data),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize:
-                                    MediaQuery.of(context).size.width / 8),
-                          ),
-                          Text(
-                            clockModel.temperatureString,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize:
-                                    MediaQuery.of(context).size.width / 16),
-                          ),
-                        ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Center(
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              DateFormat('HH:mm').format(snap.data),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize:
+                                      MediaQuery.of(context).size.width / 18),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
+                  ],
+                );
+              }
             }));
-  }
-
-  listenerClock() {
-    print('change');
-    print(clockModel.weatherCondition);
   }
 
   randomWeather() {
     Random random = Random();
-    clockModel.weatherCondition =
-        WeatherCondition.values[random.nextInt(WeatherCondition.values.length)];
+    setState(() {
+      clockModel.weatherCondition = WeatherCondition
+          .values[random.nextInt(WeatherCondition.values.length)];
+    });
   }
 }
