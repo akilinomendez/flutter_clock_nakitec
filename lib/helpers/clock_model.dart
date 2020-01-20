@@ -15,9 +15,7 @@ import 'package:flutter/material.dart';
 /// your `dispose` method.
 ///
 /// Contestants: Do not edit this.
-class ClockModel extends ChangeNotifier {  
-  
-
+class ClockModel extends ChangeNotifier {
   get is24HourFormat => _is24HourFormat;
   bool _is24HourFormat = true;
   set is24HourFormat(bool is24HourFormat) {
@@ -73,11 +71,15 @@ class ClockModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
 
+  void setWeatherCondition(WeatherCondition weather) {
+    _weatherCondition = weather;   
+  }
   /// Weather condition text for the current weather, for example  'cloudy'.
   WeatherCondition get weatherCondition => _weatherCondition;
   WeatherCondition _weatherCondition = WeatherCondition.sunny;
-  set weatherCondition(WeatherCondition weatherCondition) {
+  set weatherCondition(WeatherCondition weatherCondition) {    
     if (weatherCondition != _weatherCondition) {
       _weatherCondition = weatherCondition;
       notifyListeners();

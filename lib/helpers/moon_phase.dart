@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+
+// THIS CONTENT IS INSPIRE AND CONVERT JAVASCRIPT CODE FROM https://github.com/ryanseys/lune    
+
 class MoonPhase {
   // Phases of the moon & precision
   static const int NEW = 0;

@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
             ),
             Provider<TimerState>(create: (_) => TimerState()),
           ],
-          child: DefaultPage(),
+          child: DefaultPage(demo: false),  // set True Demo mode
         ));
   }
 }

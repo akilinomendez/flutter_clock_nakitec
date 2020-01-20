@@ -12,10 +12,15 @@ import 'package:flare_flutter/flare_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:testapp/helpers/clock_model.dart';
 import 'package:testapp/helpers/moon_phase.dart';
+import 'package:flare_dart/math/mat2d.dart';
+import 'package:flare_dart/math/vec2d.dart';
 import 'package:testapp/helpers/timerState.dart';
+import 'package:testapp/widgets/snow.dart';
+import 'package:testapp/widgets/thunder.dart';
 
 class DefaultPage extends StatefulWidget {
-  DefaultPage({Key key}) : super(key: key);
+  final bool demo;
+  DefaultPage({Key key, this.demo}) : super(key: key);
 
   @override
   _DefaultPageState createState() => _DefaultPageState();
@@ -23,36 +28,41 @@ class DefaultPage extends StatefulWidget {
 
 class _DefaultPageState extends State<DefaultPage> with FlareController {
   double _cicleAmount = 1;
-  //double _speed = 0.00001157407; // 24 HOUR
-  double _speed = 1;
   double _cicleTime = 0;
   double _cloudyTime = 0;
+  double _rainyTime = 0;
   bool _isPaused = false;
   ActorAnimation _cicle;
   ActorAnimation _cloudy;
   ActorAnimation _rainy;
-  bool end = false;
+  bool _cloudyAnimation = false;
+  bool _rainyAnimation = false;
+  bool _transitionAnimation = false;
+  bool _snowAnimation = false;
+  bool _thunderAnimation = false;
+  bool _isSnow = false;
+  bool _isThunder = false;
 
-  bool setMoon = false;
   MoonPhase getMoon = MoonPhase();
-  double stateMoonx = 0;
-  double nodeMoonLigthx = 0;
-  bool _rainybool = false;
-  ActorNode _nodeglobal;
+
   ClockModel clockModel;
 
   TimerState timerState;
   String _timeString = '';
   DateTime _timeMoon;
+  WeatherCondition _currentWeather = WeatherCondition.sunny;
 
   @override
   void initState() {
     super.initState();
+    if (widget.demo) {
+      randomWeather();
+    }
   }
 
   void getMoonState(FlutterActorArtboard artboard, date) {
     // Get Nodes for change Phase
-    _nodeglobal = artboard.getNode("Global");
+    ActorNode _nodeglobal = artboard.getNode("Global");
     ActorNode nodeSunandMoon =
         _nodeglobal.children.firstWhere((node) => node.name == 'sun and moon');
     ActorNode nodeMoonLight =
@@ -141,28 +151,131 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
     _rainy = artboard.getAnimation("raining");
   }
 
-  listenerClock() {
-    print('change');
-    print(clockModel.weatherCondition);
-  }
-
   bool advance(FlutterActorArtboard artboard, double elapsed) {
-    _cicleTime = double.parse(_timeString);
+    if (!_transitionAnimation) {
+      if (_currentWeather != clockModel.weatherCondition) {
+        _cloudyTime = 0;
+        _rainyTime = 0;
+        _cloudy.apply(_cloudyTime, artboard, 1);
+        _rainy.apply(_rainyTime, artboard, 1);
+        _transitionAnimation = true;
+        print('Distinto');
+        setState(() {
+          _currentWeather = clockModel.weatherCondition;
+        });
+        switch (clockModel.weatherCondition) {
+          case WeatherCondition.cloudy:
+           _thunderAnimation = false;
+            _snowAnimation = false;
+            _isSnow = false;
+            _isThunder = false; 
+            _cloudyAnimation = true;
+            break;
+
+          case WeatherCondition.rainy:
+           _thunderAnimation = false;
+            _snowAnimation = false;
+            _isSnow = false;
+            _isThunder = false; 
+            _rainyAnimation = true;
+            break;
+
+          case WeatherCondition.snowy:
+            _thunderAnimation = false;
+            _snowAnimation = true;           
+            _isThunder = false; 
+            break;
+          case WeatherCondition.thunderstorm:
+            _thunderAnimation = true;
+            _snowAnimation = false;            
+            _isSnow = false;       
+           
+            break;
+
+          default:
+            _transitionAnimation = false;
+            _thunderAnimation = false;
+            _snowAnimation = false;
+            _isSnow = false;
+            _isThunder = false;  
+            break;
+        }
+      }
+    }
+
+    if (_cloudyAnimation) {
+      _cloudyTime += elapsed;
+      _cloudy.apply(_cloudyTime % _cloudy.duration, artboard, 0.9);
+      if (_cloudyTime >= _cloudy.duration) {
+        _cloudy.apply(_cloudy.duration, artboard, 0.9);
+        _cloudyAnimation = false;
+        _transitionAnimation = false;
+      }
+    }
+
+    if (_snowAnimation) {
+      _rainyTime += elapsed;
+      _rainy.apply(_rainyTime % _rainy.duration, artboard, 1);
+      if (_rainyTime >= _rainy.duration) {
+        _rainy.apply(_rainy.duration, artboard, 1);
+        _rainyAnimation = false;
+        _isSnow = true;
+        _transitionAnimation = false;
+      }
+    }
+
+    if (_thunderAnimation) {
+      _rainyTime += elapsed;
+      _rainy.apply(_rainyTime % _rainy.duration, artboard, 1);
+      if (_rainyTime >= _rainy.duration) {
+        _rainy.apply(_rainy.duration, artboard, 1);
+        _rainyAnimation = false;
+        _isThunder = true;
+        _transitionAnimation = false;
+      }
+    }
+
+    if (_rainyAnimation) {
+      _rainyTime += elapsed;
+      _rainy.apply(_rainyTime % _rainy.duration, artboard, 0.5);
+      if (_rainyTime >= _rainy.duration) {
+        _rainy.apply(_rainy.duration, artboard, 0.5);
+        _rainyAnimation = false;
+        _transitionAnimation = false;
+      }
+    }
+
+    if (widget.demo) {
+      _cicleTime += elapsed * 2;
+      //
+      //_reinit animation overflowb
+      if (_cicleTime >= 24) {
+        _cicleTime = 0;
+        _cicleTime += elapsed * 2;
+      }
+    } else {
+      _cicleTime = double.parse(_timeString);
+    }
     getMoonState(artboard, _timeMoon);
     _cicle.apply(_cicleTime % _cicle.duration, artboard, _cicleAmount);
     return true;
   }
 
-// Convert Datetime to Animation frame value, 8:00  is sunset animation value 0;
+// Convert Datetime to Animation frame value, 6:00  is sunset animation value 0;
   void _listenTimer(BuildContext context, data) {
-    /* Testing all hours;
-    DateTime date =
-        DateTime(2019, 12, 16, 2, 0).subtract(new Duration(hours: 8));
-    */
-    // Set from provider TimerState data
-    DateTime date = data.subtract(new Duration(hours: 8));
-    _timeMoon = date;
-    _timeString = DateFormat('HH.mm').format(date);
+    if (widget.demo) {
+      /* Testing all hours;*/
+
+      DateTime date =
+          DateTime(2020, 01, 9, 23, 0).subtract(new Duration(hours: 6));
+      _timeMoon = date;
+      _timeString = DateFormat('HH.mm').format(date);
+    } else {
+      // Set from provider TimerState data
+      DateTime date = data.subtract(new Duration(hours: 6));
+      _timeMoon = date;
+      _timeString = DateFormat('HH.mm').format(date);
+    }
   }
 
   @override
@@ -170,7 +283,6 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   @override
   Widget build(BuildContext context) {
     clockModel = Provider.of<ClockModel>(context);
-    clockModel.addListener(listenerClock());
     timerState = Provider.of<TimerState>(context);
     return Scaffold(
         body: StreamBuilder<DateTime>(
@@ -196,9 +308,30 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
                         ],
                       ),
                     ),
+                    ThunderWidget(
+                      isShow: _isThunder,
+                      children: <Widget>[
+                        Container(),
+                        Center(
+                            child: SizedBox(
+                          child: Opacity(
+                            opacity: 0.2,
+                            child: Container(
+                             decoration: BoxDecoration(
+                               
+                               color: Colors.yellow[100]),
+
+                          )),
+                        ))
+                        
+                      ],
+                    ),
+                    SnowWidget(
+                      isShow: _isSnow,
+                    ),
                     Positioned(
-                      bottom: 0,
-                      right: 0,
+                      bottom: 10,
+                      right: 10,
                       child: Center(
                         child: Column(
                           children: <Widget>[
@@ -207,7 +340,17 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize:
-                                      MediaQuery.of(context).size.width / 18),
+                                      MediaQuery.of(context).size.width / 25),
+                            ),
+                            InkWell(
+                              // onTap: () => taprandomWeather(), // only for testing develop
+                              child: Text(
+                                clockModel.weatherString,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize:
+                                        MediaQuery.of(context).size.width / 50),
+                              ),
                             ),
                           ],
                         ),
@@ -220,10 +363,21 @@ class _DefaultPageState extends State<DefaultPage> with FlareController {
   }
 
   randomWeather() {
-    Random random = Random();
-    setState(() {
-      clockModel.weatherCondition = WeatherCondition
+    Timer.periodic(Duration(seconds: 15), (t) {
+      print("change Weather");
+      Random random = Random();
+      WeatherCondition weather = WeatherCondition
           .values[random.nextInt(WeatherCondition.values.length)];
+      clockModel.setWeatherCondition(weather);
     });
+  }
+
+  taprandomWeather() {
+    // only for development
+    print("change Weather Tap");
+    Random random = Random();
+    WeatherCondition weather =
+        WeatherCondition.values[random.nextInt(WeatherCondition.values.length)];
+    clockModel.setWeatherCondition(weather);
   }
 }
